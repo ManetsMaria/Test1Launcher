@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Першы Крэдытны праект</string>
+    <string name="welcome">Сардэчна запрашаем!</string>
+    <string name="firstdescription">Гэта крэдыт Android прыкладанняў. Аўтар: Марыя Mанец</string>
+    <string name="seconddescriptionHeader">Пуск</string>
+    <string name="seconddescription">Просты запуск прыкладання</string>
+    <string name="themeHeader">Абярыце тэму прыкладанняў</string>
+    <string name="radioNormalButton">Нармальны памер сеткі</string>
+    <string name="radioBigButton">Вялікі памер сеткі</string>
+    <string name="sizeHeader">Выберыце параметр памера</string>
+    <string name="sizeHint">IУваходнае лік заявак</string>
+    <string name="next">Наступны</string>
+    <string name="finish">Аздабленне</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="ten">A</string>
+    <string name="eleven">B</string>
+    <string name="twelve">C</string>
+    <string name="thirteen">D</string>
+    <string name="fourteen">E</string>
+    <string name="fifteen">F</string>
+    <string name="select_action">выберыце дзеянне</string>
+    <string name="delete">выдаляць</string>
+    <string name="info">інфармацыя</string>
+    <string name="newAp">новы:</string>
+    <string name="popAp">папулярны:</string>
+    <string name="myAp">Мае прыкладання:</string>
+</resources>

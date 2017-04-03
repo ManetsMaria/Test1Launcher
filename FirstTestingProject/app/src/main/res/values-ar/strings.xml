@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">أول مشروع ائتماني</string>
+    <string name="welcome">أهلا بك!</string>
+    <string name="firstdescription">فمن الائتمان الروبوت التطبيق. الكاتب: ماريا مانيتس</string>
+    <string name="seconddescriptionHeader">قاذفة</string>
+    <string name="seconddescription">تطبيق قاذفة بسيطة</string>
+    <string name="themeHeader">اختر موضوع التطبيق</string>
+    <string name="radioNormalButton">حجم الشبكة العادية</string>
+    <string name="radioBigButton">شبكة حجم كبير</string>
+    <string name="sizeHeader">شبكة حجم كبير</string>
+    <string name="sizeHint">إدخال عدد من التطبيقات</string>
+    <string name="next">التالى</string>
+    <string name="finish">إنهاء</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="ten">A</string>
+    <string name="eleven">B</string>
+    <string name="twelve">C</string>
+    <string name="thirteen">D</string>
+    <string name="fourteen">E</string>
+    <string name="fifteen">F</string>
+    <string name="select_action">اختر فعلا</string>
+    <string name="delete">حذف</string>
+    <string name="info">معلومات</string>
+    <string name="newAp">^:^لجديد</string>
+    <string name="popAp">ج:مع</string>
+    <string name="myAp">ط:لبي</string>
+</resources>

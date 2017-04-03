@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="nextButton_width">150dp</dimen>
+    <dimen name="nextButton_height">60dp</dimen>
+    <dimen name="paddingNext">50dp</dimen>
+    <dimen name="secondpageText">40dp</dimen>
+    <dimen name="choosethemehorizontal">15dp</dimen>
+</resources>

@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Эхний зээлийн төсөл</string>
+    <string name="welcome">Тавтай морилно уу!</string>
+    <string name="firstdescription">Энэ нь зээлийн Android програм юм. Зохиогч: Mariya Manets</string>
+    <string name="seconddescriptionHeader">харвагч</string>
+    <string name="seconddescription">Энгийн харвагч програм</string>
+    <string name="themeHeader">програм сэдвийг сонгоно уу</string>
+    <string name="radioNormalButton">Хэвийн хэмжээ сүлжээ</string>
+    <string name="radioBigButton">Том хэмжээтэй сүлжээ</string>
+    <string name="sizeHeader">хэмжээ сонголт сонгоно уу</string>
+    <string name="sizeHint">програмуудын Оролтын тоо</string>
+    <string name="next">Дараачийн</string>
+    <string name="finish">барианы</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="ten">A</string>
+    <string name="eleven">B</string>
+    <string name="twelve">C</string>
+    <string name="thirteen">D</string>
+    <string name="fourteen">E</string>
+    <string name="fifteen">F</string>
+    <string name="select_action">үйл ажиллагаа сонгоно</string>
+    <string name="delete">устгах</string>
+    <string name="info">мэдээлэл</string>
+    <string name="newAp">шинэ:</string>
+    <string name="popAp">алдартай:</string>
+    <string name="myAp">Миний Програмын:</string>
+</resources>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">पहले क्रेडिट परियोजना</string>
+    <string name="welcome">स्वागत हे!</string>
+    <string name="firstdescription">यह क्रेडिट एंड्रॉइड एप्लिकेशन है लेखक: मारिया मैनेट</string>
+    <string name="seconddescriptionHeader">लांचर</string>
+    <string name="seconddescription">सरल लांचर आवेदन</string>
+    <string name="themeHeader">आवेदन विषय चुनें</string>
+    <string name="radioNormalButton">सामान्य आकार ग्रिड</string>
+    <string name="radioBigButton">बिग आकार ग्रिड</string>
+    <string name="sizeHeader">आकार विकल्प चुन</string>
+    <string name="sizeHint">एप्लिकेशन की इनपुट संख्या</string>
+    <string name="next">आगामी</string>
+    <string name="finish">समाप्त</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="ten">A</string>
+    <string name="eleven">B</string>
+    <string name="twelve">C</string>
+    <string name="thirteen">D</string>
+    <string name="fourteen">E</string>
+    <string name="fifteen">F</string>
+    <string name="select_action">कार्रवाई चुनें</string>
+    <string name="delete">हटाना</string>
+    <string name="info">जानकारी</string>
+    <string name="newAp">:नया</string>
+    <string name="popAp">:लोकप्रिय</string>
+    <string name="myAp">:मेरा आवेदन</string>
+</resources>
+
+
+
+
+
+
+
+

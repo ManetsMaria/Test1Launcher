@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">An chéad Tionscadal Creidmheasa</string>
+    <string name="welcome">Fáilte!</string>
+    <string name="firstdescription">Is creidmheas i bhfeidhm android. Author: Mariya Manets</string>
+    <string name="seconddescriptionHeader">Launcher</string>
+    <string name="seconddescription">iarratas Tosaitheoir Simplí</string>
+    <string name="themeHeader">Roghnaigh téama iarratas</string>
+    <string name="radioNormalButton">greille Méid Gnáth</string>
+    <string name="radioBigButton">greille méid mór</string>
+    <string name="sizeHeader">Roghnaigh Roghanna Méid</string>
+    <string name="sizeHint">Uimhir ionchur na n-iarratas</string>
+    <string name="next">Ar Aghaidh</string>
+    <string name="finish">críochnaigh</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="ten">A</string>
+    <string name="eleven">B</string>
+    <string name="twelve">C</string>
+    <string name="thirteen">D</string>
+    <string name="fourteen">E</string>
+    <string name="fifteen">F</string>
+    <string name="select_action">Roghnaigh gníomh</string>
+    <string name="delete">scriosadh</string>
+    <string name="info">info</string>
+    <string name="newAp">nua:</string>
+    <string name="popAp">Coitianta:</string>
+    <string name="myAp">MIarratas:</string>
+</resources>
