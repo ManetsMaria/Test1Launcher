@@ -1,10 +1,16 @@
 package com.example.marya.firsttestingproject;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.provider.Settings;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,12 +35,10 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
     //static List<Programm> sortProgramm;
     static int column;
     static List<Programm> news;
-    static List<Integer> previous;
-    //static List<Programm> deleting;
     static List<Programm> programms;
-    static  List<Programm> popular;
-    private static TreeSet<Integer> ss;
-    final Random random = new Random();
+    static List<Programm> popular;
+    static List<Programm> favorites;
+    PackageManager manager;
     public static class ProgrammViewHolder extends RecyclerView.ViewHolder{
 
         public TextView programmName;
@@ -51,33 +55,36 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         }
     }
     Context context;
-    RVAdapter(List<Programm>pop,List<Programm> ne, List<Programm> prog,Context context, int col){
+    RVAdapter(List<Programm> prog,List<Programm>pop,List<Programm> ne,List<Programm>fav, Context context, int col, PackageManager manager){
         this.context=context;
-        ss=new TreeSet<>();
+        this.manager=manager;
         column=col;
-        if (prog.isEmpty()) {
-            news = new ArrayList<Programm>();
-            previous = new ArrayList<>(column);
-            programms=new ArrayList<Programm>();
-            for (int i = 0; i < 5000; i++) {
-                programms.add(new Programm(i, image(i)));
-            }
-            popular = new ArrayList<>(programms);
-            for (int i=0; i<7; i++){
-                news.add(programms.get(i));
+        programms=prog;
+        if (pop.isEmpty()){
+            popular=new ArrayList<>(programms);
+        }
+        else{
+            popular=pop;
+        }
+        if (ne.isEmpty()) {
+            news = new ArrayList<>();
+            for (int i = 1; i < 8; i++) {
+                news.add(programms.get(programms.size() - i));
             }
         }
         else{
             news=ne;
-            popular=pop;
-            programms=prog;
         }
+        favorites=fav;
     }
     public List<Programm> getPopular(){
         return popular;
     }
     public List<Programm> getNews(){
         return news;
+    }
+    public List<Programm> getFavorites(){
+        return favorites;
     }
     public List<Programm> getProgramms() {return programms;}
     @Override
@@ -88,7 +95,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
     @Override
     public ProgrammViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.card_view, viewGroup, false);
-      //  ProgrammViewHolder pvh = new ProgrammViewHolder(v, context);
+        //  ProgrammViewHolder pvh = new ProgrammViewHolder(v, context);
         int width = viewGroup.getMeasuredWidth() / (column);
         v.setMinimumWidth(width);
         //v.setMinimumHeight(0);
@@ -107,27 +114,15 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         int type=getItemViewType(i);
         switch (type) {
             case 2: {
-                if(i-2*column<programms.size()){
                     if (i-2*column==0) {
-                        personViewHolder.programmName.setText(context.getString(R.string.myAp)+" "+name(programms.get(i - 2 * column).name));
+                        personViewHolder.programmName.setText(context.getString(R.string.myAp)+" "+programms.get(i - 2 * column).name);
                     }
                     else{
-                        personViewHolder.programmName.setText(name(programms.get(i-2*column).name));
+                        personViewHolder.programmName.setText(programms.get(i-2*column).name);
                     }
-                    personViewHolder.programmPhoto.setImageResource(programms.get(i-2*column).photoId);
-                }
-                else{
-                    Log.d("here", "2");
-                    int next=0;
-                    if (!programms.isEmpty()) {
-                        next = programms.get(programms.size() - 1).name + 1;
-                    }
-                    int image=image(next);
-                    programms.add(new Programm(next,image));
-                    personViewHolder.programmName.setText(name(next));
-                    personViewHolder.programmPhoto.setImageResource(image);
-                }
-                personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+                    personViewHolder.programmPhoto.setImageDrawable(programms.get(i-2*column).photoId);
+
+                    personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                     @Override
                     public void onCreateContextMenu(ContextMenu menu, View v,
                                                     ContextMenu.ContextMenuInfo menuInfo) {
@@ -135,67 +130,21 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                         menu.add(R.string.delete).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                /*notifyItemRemoved(personViewHolder.getAdapterPosition());
-                                int index=indexOf(popular,new Programm(personViewHolder.programmName.getText().toString(),1));
-                                if (index>=0 && index<column){
-                                    notifyItemRemoved(index);
-                                }
-                                if (index>0){
-                                    popular.remove(index);
-                                }
-                                deleting.add(new Programm(personViewHolder.programmName.getText().toString(),1));*/
-                               // sortProgramm.remove()
-                                //notifyItemRemoved(i);
-                                //programms.remove(i-2*column);
-                                //notifyItemRangeChanged(i, getItemCount());
-                                //sortProgramm.remove(new Programm(name(i-2*column),1));
-                                Log.d("delete","start");
-                                notifyItemRemoved(i);
-                                Log.d("delete",String.valueOf(i-2*column));
-                                Log.d("delete",String.valueOf(personViewHolder.getAdapterPosition()));
-                                int index=indexOf(popular,programms.get(i-2*column));
-                                Log.d("delete",String.valueOf(index));
-                                if (index>=0 && index<column) {
-                                    notifyItemRemoved(index);
-                                }
-                                if (index>=0){
-                                    popular.remove(index);
-                                }
-                                programms.remove(i-2*column);
-                                notifyItemRangeChanged(0,getItemCount());
+                                contextDelete(programms.get(i-2*column));
                                 return true;
                             }
                         });
                         menu.add(R.string.info).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                Programm p=programms.get(i-2*column);
-                                int index=indexOf(popular,p);
-                                if (index>=0){
-                                    p=popular.get(index);
-                                    popular.remove(index);
-                                    if (index<column)
-                                        notifyItemChanged(index);
-                                }
-
-                                p.count++;
-                                int flag=-1;
-                                for (int i=0; i<7; i++){
-                                    if (popular.get(i).count<p.count){
-                                        popular.add(i,p);
-                                        flag=i;
-                                        break;
-                                    }
-                                }
-                                if (flag>=0 && flag<column){
-                                    for (int j=0; j<column; j++){
-                                        notifyItemChanged(j);
-                                    }
-                                }
-                                else {
-                                    popular.add(p);
-                                }
-                                Toast.makeText(context, name(p.name), Toast.LENGTH_SHORT).show();
+                                contextInfo(programms.get(i-2*column));
+                                return true;
+                            }
+                        });
+                        menu.add("to favorite").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextFavorite(programms.get(i-2*column));
                                 return true;
                             }
                         });
@@ -204,33 +153,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                 View.OnClickListener listener = new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Programm p=programms.get(i-2*column);
-                        int index=indexOf(popular,p);
-                        if (index>=0){
-                            p=popular.get(index);
-                            popular.remove(index);
-                            if (index<column)
-                                notifyItemChanged(index);
-                        }
-
-                        p.count++;
-                        int flag=-1;
-                        for (int i=0; i<7; i++){
-                            if (popular.get(i).count<p.count){
-                                popular.add(i,p);
-                                flag=i;
-                                break;
-                            }
-                        }
-                        if (flag>=0 && flag<column){
-                            for (int j=0; j<column; j++){
-                                notifyItemChanged(j);
-                            }
-                        }
-                        else {
-                            popular.add(p);
-                        }
-                        Toast.makeText(context, name(p.name), Toast.LENGTH_SHORT).show();
+                        quikClick(programms.get(i-2*column));
                     }
                 };
                 personViewHolder.cv.setOnClickListener(listener);
@@ -239,139 +162,129 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
             case 0:{
                 Log.d("here", "0");
                 if (i==0)
-                    personViewHolder.programmName.setText(context.getString(R.string.popAp)+" "+name(popular.get(i).name));
+                    personViewHolder.programmName.setText(context.getString(R.string.popAp)+" "+popular.get(i).name);
                 else {
-                    personViewHolder.programmName.setText(name(popular.get(i).name));
+                    personViewHolder.programmName.setText(popular.get(i).name);
                 }
-                personViewHolder.programmPhoto.setImageResource(popular.get(i).photoId);
+                personViewHolder.programmPhoto.setImageDrawable(popular.get(i).photoId);
+                personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+                    @Override
+                    public void onCreateContextMenu(ContextMenu menu, View v,
+                                                    ContextMenu.ContextMenuInfo menuInfo) {
+                        menu.setHeaderTitle(R.string.select_action);
+                        menu.add(R.string.delete).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextDelete(popular.get(i));
+                                return true;
+                            }
+                        });
+                        menu.add(R.string.info).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextInfo(popular.get(i));
+                                return true;
+                            }
+                        });
+                        menu.add("to favorite").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextFavorite(popular.get(i));
+                                return true;
+                            }
+                        });
+                    }
+                });
+                View.OnClickListener listener = new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        quikClick(popular.get(i));
+                    }
+                };
+                personViewHolder.cv.setOnClickListener(listener);
                 break;
             }
             case 1:{
                 Log.d("here", "1");
                 if (i-column==0)
-                    personViewHolder.programmName.setText(context.getString(R.string.newAp)+" "+name(news.get(i-column).name));
+                    personViewHolder.programmName.setText(context.getString(R.string.newAp)+" "+news.get(i-column).name);
                 else{
-                    personViewHolder.programmName.setText(name(news.get(i-column).name));
+                    personViewHolder.programmName.setText(news.get(i-column).name);
                 }
-                personViewHolder.programmPhoto.setImageResource(news.get(i-column).photoId);
+                personViewHolder.programmPhoto.setImageDrawable(news.get(i-column).photoId);
+                personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+                    @Override
+                    public void onCreateContextMenu(ContextMenu menu, View v,
+                                                    ContextMenu.ContextMenuInfo menuInfo) {
+                        menu.setHeaderTitle(R.string.select_action);
+                        menu.add(R.string.delete).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextDelete(news.get(i-column));
+                                return true;
+                            }
+                        });
+                        menu.add(R.string.info).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextInfo(news.get(i-column));
+                                return true;
+                            }
+                        });
+                        menu.add("to favorite").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                contextFavorite(news.get(i-column));
+                                return true;
+                            }
+                        });
+                    }
+                });
+                View.OnClickListener listener = new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        quikClick(news.get(i-column));
+                    }
+                };
+                personViewHolder.cv.setOnClickListener(listener);
                 break;
             }
         }
     }
-    private String name(int i){
-        i++;
-        int y=0;
-        String str;
-        StringBuilder stringBuilder=new StringBuilder();
-        while(i!=0){
-            y=i%16;
-            i=i/16;
-            switch (y){
-                case 0: stringBuilder.append(context.getString(R.string.zero));
-                    break;
-                case 1: stringBuilder.append(context.getString(R.string.one));
-                    break;
-                case 2: stringBuilder.append(context.getString(R.string.two));
-                    break;
-                case 3: stringBuilder.append(context.getString(R.string.three));
-                    break;
-                case 4: stringBuilder.append(context.getString(R.string.four));
-                    break;
-                case 5: stringBuilder.append(context.getString(R.string.five));
-                    break;
-                case 6: stringBuilder.append(context.getString(R.string.six));
-                    break;
-                case 7: stringBuilder.append(context.getString(R.string.seven));
-                    break;
-                case 8: stringBuilder.append(context.getString(R.string.eight));
-                    break;
-                case 9: stringBuilder.append(context.getString(R.string.nine));
-                    break;
-                case 10: stringBuilder.append(context.getString(R.string.ten));
-                    break;
-                case 11: stringBuilder.append(context.getString(R.string.eleven));
-                    break;
-                case 12: stringBuilder.append(context.getString(R.string.twelve));
-                    break;
-                case 13: stringBuilder.append(context.getString(R.string.thirteen));
-                    break;
-                case 14: stringBuilder.append(context.getString(R.string.fourteen));
-                    break;
-                case 15: stringBuilder.append(context.getString(R.string.fifteen));
-                    break;
-                default:
-                    break;
-            }
-        }
-        return stringBuilder.reverse().toString();
+    public void add(String label, List<Programm> prog){
+        programms=prog;
+        int i=indexOf(programms,new Programm("name",context.getResources().getDrawable(R.drawable.angrybirds2),label ));
+        Programm p =programms.get(i);
+        popular.add(p);
+        news.remove(news.size()-1);
+        news.add(0, p);
+        notifyItemRangeChanged(column,getItemCount());
     }
-    private int image(int position){
-        Log.d("im", "image");
-        int forReturn=R.mipmap.ic_launcher;
-        boolean flag=true;
-        if ((position+1)%column==1){
-            ss=new TreeSet<>();
+    public void remove(String label){
+        int i=indexOf(programms,new Programm("name",context.getResources().getDrawable(R.drawable.angrybirds2),label ));
+        Programm p=programms.get(i);
+        notifyItemRemoved(i+2*column);
+        int index=indexOf(popular,p);
+        int ind=indexOf(favorites,p);
+        if (ind>=0)
+            favorites.remove(ind);
+        Log.d("delete",String.valueOf(index));
+        if (index>=0 && index<column) {
+            notifyItemRemoved(index);
         }
-        int i=0;
-        while(ss.contains(i) || flag) {
-            Log.d("im", "imagecycle");
-            Log.d("im", String.valueOf(position));
-            Log.d("im", String.valueOf(ss.size()));
-            i = random.nextInt(12);
-            Log.d("im", String.valueOf(i));
-            switch (i) {
-                case 0:
-                    forReturn = R.drawable.ic_local_gas_station_black;
-                    break;
-                case 1:
-                    forReturn = R.drawable.ic_notifications_black;
-                    break;
-                case 2:
-                    forReturn = R.drawable.ic_work_black;
-                    break;
-                case 3:
-                    forReturn = R.drawable.ic_directions_car_black;
-                    break;
-                case 4:
-                    forReturn = R.drawable.ic_date_range_black;
-                    break;
-                case 5:
-                    forReturn = R.drawable.ic_cloud_black;
-                    break;
-                case 6:
-                    forReturn = R.drawable.ic_build_black;
-                    break;
-                case 7:
-                    forReturn = R.drawable.ic_bug_report_black;
-                    break;
-                case 8:
-                    forReturn = R.drawable.ic_audiotrack_black;
-                    break;
-                case 9:
-                    forReturn = R.drawable.ic_assignment_returned_black;
-                    break;
-                case 10:
-                    forReturn = R.drawable.ic_android_black;
-                    break;
-                case 11:
-                    forReturn = R.drawable.ic_adb_black;
-                    break;
-                case 12:
-                    forReturn = R.drawable.ic_accessibility_black;
-                    break;
-            }
-                flag=position>=column && previous.get(position%column)==i;
-            /*if (position>=column)
-            Log.d("im", (String.valueOf(previous.size())));*/
+        if (index>=0){
+            popular.remove(index);
         }
-        ss.add(i);
-        if (previous.size()<=position%column){
-            previous.add(position % column, i);
+        programms.remove(i);
+        if (indexOf(news, p)>=0){
+            news.remove(p);
         }
-        else {
-            previous.set(position % column, i);
+        int k=programms.size()-1;
+        while(indexOf(news,programms.get(k))>=0){
+            k--;
         }
-        return forReturn;
+        news.add(programms.get(k));
+        notifyItemRangeChanged(0,getItemCount());
     }
     protected int indexOf(List<Programm> pr, Programm p){
         Iterator<Programm> it=pr.iterator();
@@ -383,8 +296,110 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         }
         return -1;
     }
+    private void contextDelete(Programm p){
+        Log.d("delete", "1");
+        Intent intent = new Intent(Intent.ACTION_DELETE, Uri.parse("package:"+p.label));
+        context.startActivity(intent);
+    }
+    private void contextInfo(Programm p){
+        int index=indexOf(popular,p);
+        if (index>=0){
+            p=popular.get(index);
+            popular.remove(index);
+            if (index<column)
+                notifyItemChanged(index);
+        }
+
+        p.count++;
+        int flag=-1;
+        for (int i=0; i<7; i++){
+            if (popular.get(i).count<p.count){
+                popular.add(i,p);
+                flag=i;
+                break;
+            }
+        }
+        if (flag>=0 && flag<column){
+            for (int j=0; j<column; j++){
+                notifyItemChanged(j);
+            }
+        }
+        else {
+            popular.add(p);
+        }
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.parse("package:"+p.label));
+        context.startActivity(intent);
+    }
+    private void quikClick(Programm p){
+        int index=indexOf(popular,p);
+        if (index>=0){
+            p=popular.get(index);
+            popular.remove(index);
+            if (index<column)
+                notifyItemChanged(index);
+        }
+
+        p.count++;
+        int flag=-1;
+        for (int i=0; i<7; i++){
+            if (popular.get(i).count<p.count){
+                popular.add(i,p);
+                flag=i;
+                break;
+            }
+        }
+        if (flag>=0 && flag<column){
+            for (int j=0; j<column; j++){
+                notifyItemChanged(j);
+            }
+        }
+        else {
+            popular.add(p);
+        }
+        Intent i = manager.getLaunchIntentForPackage(p.label);
+        context.startActivity(i);
+        //Toast.makeText(context, p.label, Toast.LENGTH_SHORT).show();
+    }
+    private void contextFavorite(Programm p){
+        if (indexOf(favorites,p)<0)
+            favorites.add(p);
+        int index=indexOf(popular,p);
+        if (index>=0){
+            p=popular.get(index);
+            popular.remove(index);
+            if (index<column)
+                notifyItemChanged(index);
+        }
+
+        p.count++;
+        int flag=-1;
+        for (int i=0; i<7; i++){
+            if (popular.get(i).count<p.count){
+                popular.add(i,p);
+                flag=i;
+                break;
+            }
+        }
+        if (flag>=0 && flag<column){
+            for (int j=0; j<column; j++){
+                notifyItemChanged(j);
+            }
+        }
+        else {
+            popular.add(p);
+        }
+
+    }
+    public void setNewPopular(List <Programm> popular){
+        this.popular=popular;
+    }
+    public void setNewFavorites(List <Programm> favorites){
+        this.favorites=favorites;
+    }
     @Override
     public int getItemCount() {
-        return programms.size();
+        return programms.size()+2*column-1;
     }
 }

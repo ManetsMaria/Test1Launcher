@@ -1,18 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:padding="16dp"
     android:background="?attr/colorPrimary"
     >
 
-    <android.support.v7.widget.RecyclerView
-        android:layout_height="match_parent"
+
+    <!-- Первый дочений элемент - основной контент шаблона.
+    Может быть чем угодно, но должен быть match_parent и в ширину и в высоту. -->
+        <android.support.v7.widget.RecyclerView
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:paddingBottom="57dp"
+            android:paddingTop="50dp"
+            android:id="@+id/rv"
+            android:layout_gravity="center"
+            >
+
+        </android.support.v7.widget.RecyclerView>
+    <android.support.design.widget.BottomNavigationView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/navigation"
         android:layout_width="match_parent"
-        android:id="@+id/rv"
-        android:layout_gravity="center"
-        >
+        android:layout_height="56dp"
+        android:background="@color/colorAccent"
+        android:layout_gravity="bottom"
+        app:menu="@menu/main" />
 
-    </android.support.v7.widget.RecyclerView>
+    <AutoCompleteTextView
+        android:layout_width="match_parent"
+        android:layout_height="47dp"
+        android:layout_gravity="top"
+        android:id="@+id/editText"
+        android:hint="input uri"
+        android:textColorHint="#505050"
+        android:imeOptions="actionGo"
+        android:singleLine="true"
+        android:focusableInTouchMode="true"
+        android:completionThreshold="1"
+        />
 
-
-</LinearLayout>
+</FrameLayout>

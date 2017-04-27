@@ -1,15 +1,19 @@
 package com.example.marya.firsttestingproject;
 
+import android.graphics.drawable.Drawable;
+
 /**
  * Created by marya on 29.3.17.
  */
 class Programm implements Comparable <Programm> {
-    int name;
-    int photoId;
+    String name;
+    Drawable photoId;
     int count;
-    Programm(int name, int photoId) {
+    String label;
+    Programm(String name, Drawable photoId, String label) {
         this.name = name;
         this.photoId = photoId;
+        this.label=label;
         count=0;
     }
     @Override
@@ -18,17 +22,7 @@ class Programm implements Comparable <Programm> {
     }
 
     public boolean equals(Object other){
-        if (!super.equals(other))
-           return false;
-        if(this==other)
-            return true;
-        if (other==null) return false;
-        if (this.getClass()!=other.getClass())
-            return false;
         Programm t=(Programm) other;
-        return name==t.name;
-    }
-    public int hashCode(){
-        return name;
+        return label.equals(t.label);
     }
 }

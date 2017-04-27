@@ -1,6 +1,7 @@
 package com.example.marya.firsttestingproject;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,10 +20,11 @@ public class MainActivity extends AppCompatActivity {
 
     static int column;
     static int theme;
-    static int number=0;
     static ViewPager pager;
+    SharedPreferences sPref;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        sPref = getSharedPreferences("mysettings",MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         theme=R.style.AppTheme;
@@ -47,9 +49,12 @@ public class MainActivity extends AppCompatActivity {
             pager.setCurrentItem(page+1, true);
         else{
             button.setText(R.string.finish);
-                    Intent intent = new Intent(this, ProgrammList.class);
-                    intent.putExtra("theme", theme);
-                    intent.putExtra("column", column);
+                    SharedPreferences.Editor ed = sPref.edit();
+                    ed.putInt("Column", column);
+                    ed.putInt("Theme", theme);
+                    ed.putBoolean("isWelcome", false);
+                    ed.apply();
+                    Intent intent = new Intent(this, SplashActivity.class);
                     startActivity(intent);
             }
     }
@@ -70,5 +75,9 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
+    }
+    @Override
+    public void onBackPressed() {
+        // super.onBackPressed();
     }
 }
