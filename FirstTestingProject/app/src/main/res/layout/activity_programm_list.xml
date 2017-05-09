@@ -33,7 +33,7 @@
         android:layout_height="47dp"
         android:layout_gravity="top"
         android:id="@+id/editText"
-        android:hint="input uri"
+        android:hint="input uri or contact name to add on favorite"
         android:textColorHint="#505050"
         android:imeOptions="actionGo"
         android:singleLine="true"

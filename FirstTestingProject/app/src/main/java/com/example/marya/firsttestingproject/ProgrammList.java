@@ -3,6 +3,7 @@ package com.example.marya.firsttestingproject;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.internal.NavigationMenu;
 import android.support.design.widget.BottomNavigationView;
@@ -41,6 +43,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -70,10 +74,15 @@ public class ProgrammList extends Activity {
     static int numberHints;
     AutoCompleteTextView textView;
     SharedPreferences sPref;
+    SharedPreferences shareUri;
     DBHelper dbHelper;
     SQLiteDatabase db;
     String str;
-    class DBHelper extends SQLiteOpenHelper {
+    String readPrevious;
+    private static List<Contact>forFavorite;
+    private static List<Contact> contacts=new ArrayList<>();
+
+   public class DBHelper extends SQLiteOpenHelper {
 
         public DBHelper(Context context) {
             // конструктор суперкласса
@@ -88,6 +97,8 @@ public class ProgrammList extends Activity {
                     + "popular text" + ");");
             db.execSQL("create table mytable3 ("
                     + "favorite text" + ");");
+            db.execSQL("create table mytable4 ("
+                    + "contacts text" + ");");
         }
 
         @Override
@@ -102,35 +113,15 @@ public class ProgrammList extends Activity {
         sPref = getSharedPreferences("mysettings",MODE_PRIVATE);
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
+        shareUri=getSharedPreferences("uries",MODE_PRIVATE);
+        readFromDatabaseUri();
         fragment=(FragmentList) getLastNonConfigurationInstance();
         initData();
             popular=new ArrayList<>();
             favorites=new ArrayList<>();
             news=new ArrayList<>();
-            uries=new ArrayList<>();
+            forFavorite=new ArrayList<>();
             Log.d("zaeb", "fragment false");
-            if (sPref.getBoolean("clearUri", false)){
-                SharedPreferences.Editor ed = sPref.edit();
-                ed.putBoolean("clearUri", false);
-                ed.apply();
-                Log.d("zaeb", "fragment false clearTrue");
-                db.delete("mytable1", null, null);
-            }
-            else{
-                Log.d("zaeb", "fragment false database");
-                Cursor c = db.query("mytable1", null, null, null, null, null, null);
-                if (c.moveToFirst()) {
-                    int index = c.getColumnIndex("uries");
-                    do {
-                        str=c.getString(index);
-                    } while (c.moveToNext());
-                    uries= Arrays.asList(str.split(";"));
-                    uries=new ArrayList<>(uries);
-                    if (uries!=null & uries.get(0)=="")
-                        uries=new ArrayList<>();
-                } else
-                c.close();
-            }
             if (sPref.getBoolean("clearFav", false)){
                 SharedPreferences.Editor ed = sPref.edit();
                 ed.putBoolean("clearFav", false);
@@ -183,6 +174,31 @@ public class ProgrammList extends Activity {
                 c.close();
                 Log.d("dontknow", "hbn");
             }
+        c = db.query("mytable4", null, null, null, null, null, null);
+        if (c.moveToFirst()) {
+            int index = c.getColumnIndex("contacts");
+            do {
+                str=c.getString(index);
+            } while (c.moveToNext());
+            if (!str.equals("")) {
+                List<String> fav = Arrays.asList(str.split(";"));
+                Log.d("gh", String.valueOf(fav.size()));
+                Log.d("gh", fav.toString());
+                for (int i = 0; i < fav.size(); i++) {
+                    int j = 0;
+                    Log.d("gh", String.valueOf(fav.size()));
+                    int id = Integer.valueOf(fav.get(i));
+                    while (j < contacts.size() && contacts.get(j).id != id) {
+                        j++;
+                    }
+                    if (j < contacts.size())
+                        forFavorite.add(contacts.get(j));
+                }
+            }
+        } else{
+            c.close();
+            Log.d("dontknow", "hbn");
+        }
 
         /*else{
             Log.d("zaeb", "fragment true clearTrue");
@@ -264,6 +280,7 @@ public class ProgrammList extends Activity {
         textView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
+                    readFromDatabaseUri();
                     updateHints();
                 Log.d("hueri", "touch");
                     textView.showDropDown();
@@ -282,25 +299,28 @@ public class ProgrammList extends Activity {
                         Log.d("hueri", "try");
                         Intent intent3 = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                         Log.d("hueri", uri);
-                        if (uri.length()>0) {
-                            int index = uries.indexOf(uri);
-                            if (index < 0) {
-                                Log.d("hueri", "add uri");
-                                uries.add(uri);
-                            }
-                            else{
-                                Log.d("hueri", "remove and add");
-                                uries.remove(index);
-                                uries.add(uri);
-                            }
-                        }
                         Log.d("hueri", "before start act");
+                        if (uri.length()>0) {
+                            Log.d("make sure", String.valueOf(System.currentTimeMillis()/(1000 * 60 * 60 * 24)));
+                            writeUri(uri);
+                        }
                         startActivity(intent3);
                         Log.d("hueri", "after start act");
                     }
                     catch (ActivityNotFoundException e){
                         Log.d("hueri", "catch");
-                        Toast.makeText(ProgrammList.this, "wrong uri", Toast.LENGTH_SHORT).show();
+                        int index=contacts.indexOf(new Contact(9,uri,"h"));
+                        if (index>=0){
+                           Contact contact=contacts.get(index);
+                           if (forFavorite.indexOf(contact)<0) {
+                               forFavorite.add(contact);
+                               favoritesAdapter.insertContact(forFavorite);
+                           }
+                            Toast.makeText(ProgrammList.this, "add", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(ProgrammList.this, "wrong uri", Toast.LENGTH_SHORT).show();
+                        }
                     }
                     finally {
                         Log.d("hueri", "finally");
@@ -360,7 +380,7 @@ public class ProgrammList extends Activity {
         favorites=adapter.getFavorites();
         popular=adapter.getPopular();
         Log.d("fav", String.valueOf(favorites.size())+" favadapt");
-        favoritesAdapter=new FavoritesAdapter(favorites,popular,ProgrammList.this,getResources().getInteger(column),manager);
+        favoritesAdapter=new FavoritesAdapter(favorites,popular,ProgrammList.this,getResources().getInteger(column),manager, forFavorite);
         rv.setAdapter(favoritesAdapter);
     }
     public Object onRetainNonConfigurationInstance() {
@@ -376,20 +396,13 @@ public class ProgrammList extends Activity {
         super.onDestroy();
         favorites=adapter.getFavorites();
         popular=adapter.getPopular();
-        String eba="";
         ContentValues cv = new ContentValues();
-        for (int i=0; i<uries.size();i++){
-            eba=eba+uries.get(i)+";";
-        }
-        cv.put("uries", eba);
-        long rowID = db.insert("mytable1", null, cv);
-        cv = new ContentValues();
-        eba="";
+        String eba="";
         for (int i=0; i<popular.size();i++){
             eba=eba+popular.get(i).label+":"+popular.get(i).count+";";
         }
         cv.put("popular",eba);
-        rowID = db.insert("mytable2", null, cv);
+        long rowID = db.insert("mytable2", null, cv);
         cv = new ContentValues();
         eba="";
         for (int i=0; i<favorites.size();i++){
@@ -397,6 +410,14 @@ public class ProgrammList extends Activity {
         }
         cv.put("favorite",eba);
         rowID = db.insert("mytable3", null, cv);
+
+        cv = new ContentValues();
+        eba="";
+        for (int i=0; i<forFavorite.size();i++){
+            eba=eba+forFavorite.get(i).id+";";
+        }
+        cv.put("contacts",eba);
+        rowID = db.insert("mytable4", null, cv);
         Log.d("zaeb", "onDestroy");
 
     }
@@ -424,18 +445,12 @@ public class ProgrammList extends Activity {
         popular=adapter.getPopular();
         String eba="";
         ContentValues cv = new ContentValues();
-        for (int i=0; i<uries.size();i++){
-            eba=eba+uries.get(i)+";";
-        }
-        cv.put("uries", eba);
-        long rowID = db.insert("mytable1", null, cv);
-        cv = new ContentValues();
         eba="";
         for (int i=0; i<popular.size();i++){
             eba=eba+popular.get(i).label+":"+popular.get(i).count+";";
         }
         cv.put("popular",eba);
-        rowID = db.insert("mytable2", null, cv);
+        long rowID = db.insert("mytable2", null, cv);
         cv = new ContentValues();
         eba="";
         for (int i=0; i<favorites.size();i++){
@@ -444,6 +459,13 @@ public class ProgrammList extends Activity {
         cv.put("favorite",eba);
         rowID = db.insert("mytable3", null, cv);
         super.onStop();
+        cv = new ContentValues();
+        eba="";
+        for (int i=0; i<forFavorite.size();i++){
+            eba=eba+forFavorite.get(i).id+";";
+        }
+        cv.put("contacts",eba);
+        rowID = db.insert("mytable4", null, cv);
         Log.d("zaeb", "onStop");
     }
     public void initData(){
@@ -466,6 +488,17 @@ public class ProgrammList extends Activity {
             }
         }
         programms.add(me);
+        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, new String[] {ContactsContract.CommonDataKinds.Phone.CONTACT_ID, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}, null, null, null);
+        startManagingCursor(cursor);
+
+        if (cursor.getCount() > 0)
+        {
+            while (cursor.moveToNext())
+            {
+                Contact contact=new Contact(Integer.valueOf(cursor.getString(0)),cursor.getString(1),cursor.getString(2));
+                contacts.add(contact);
+            }
+        }
     }
     public void callInserting(String name) {
             initData();
@@ -512,5 +545,67 @@ public class ProgrammList extends Activity {
             index++;
         }
         return -1;
+    }
+    /*private void saveUri(){
+        String eba="";
+        ContentValues cv = new ContentValues();
+        for (int i=0; i<uries.size();i++){
+            eba=eba+uries.get(i)+"uriTime:"+String.valueOf(System.currentTimeMillis()/(1000*3600*24))+";";
+        }
+        cv.put("uries", eba);
+        long rowID = db.insert("mytable1", null, cv);
+    }*/
+    public void readFromDatabaseUri(){
+        uries=new ArrayList<>();
+        readPrevious="";
+        if (sPref.getBoolean("clearUri", false)){
+            SharedPreferences.Editor ed = sPref.edit();
+            ed.putBoolean("clearUri", false);
+            ed.apply();
+            SharedPreferences.Editor urEd=shareUri.edit();
+            urEd.putString("allUri","");
+            Log.d("zaeb", "fragment false clearTrue");
+            //db.delete("mytable1", null, null);
+        }
+        else{
+            Log.d("zaeb", "fragment false database");
+            str=shareUri.getString("allUri","");
+            //Cursor c = db.query("mytable1", null, null, null, null, null, null);
+            //if (c.moveToFirst()) {
+                //int index = c.getColumnIndex("uries");
+                //do {
+                  //  str=c.getString(index);
+                    readPrevious=str;
+                //} while (c.moveToNext());
+                List<String> fav = Arrays.asList(str.split(";"));
+                for (int i=0; i<fav.size(); i++){
+                    List<String> stl=Arrays.asList(fav.get(i).split("uriTime:"));
+                    String name=stl.get(0);
+                    if (!name.equals("")){
+                        uries.add(name);
+                    }
+                }
+            //} else
+              //  c.close();
+        }
+    }
+    public void writeUri(String uri){
+        int index = uries.indexOf(uri);
+        if (index < 0) {
+            Log.d("hueri", "add uri");
+            uries.add(uri);
+        }
+        else{
+            Log.d("hueri", "remove and add");
+            uries.remove(index);
+            uries.add(uri);
+        }
+        //ContentValues cv = new ContentValues();
+            readPrevious=readPrevious+uri+"uriTime:"+String.valueOf(System.currentTimeMillis()/(1000 * 60 * 60 * 24))+";";
+        //cv.put("uries", readPrevious);
+        //long rowID = db.insert("mytable1", null, cv);
+        SharedPreferences.Editor ed = shareUri.edit();
+        ed.putString("allUri", readPrevious);
+        ed.apply();
     }
 }

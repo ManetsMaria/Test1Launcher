@@ -16,10 +16,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-        applicationVariants.all { variant ->
-            variant.outputs.each { output ->
-                output.outputFile = file("$project.buildDir/ready for install apk/2testingproject.apk")
-            }
+        debug {
+            project.ext.set("archivesBaseName", "3testingproject" );
         }
     }
 

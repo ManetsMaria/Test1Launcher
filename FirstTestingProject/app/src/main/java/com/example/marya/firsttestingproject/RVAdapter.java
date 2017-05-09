@@ -68,7 +68,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         }
         if (ne.isEmpty()) {
             news = new ArrayList<>();
-            for (int i = 1; i < 8; i++) {
+            for (int i = 1; i < 10; i++) {
                 news.add(programms.get(programms.size() - i));
             }
         }
