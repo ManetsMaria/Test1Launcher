@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.Manifest;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -23,6 +24,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.internal.NavigationMenu;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -110,6 +112,7 @@ public class ProgrammList extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, 1);
         sPref = getSharedPreferences("mysettings",MODE_PRIVATE);
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -488,16 +491,18 @@ public class ProgrammList extends Activity {
             }
         }
         programms.add(me);
-        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, new String[] {ContactsContract.CommonDataKinds.Phone.CONTACT_ID, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}, null, null, null);
-        startManagingCursor(cursor);
+        try {
+            Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, new String[]{ContactsContract.CommonDataKinds.Phone.CONTACT_ID, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}, null, null, null);
+            startManagingCursor(cursor);
 
-        if (cursor.getCount() > 0)
-        {
-            while (cursor.moveToNext())
-            {
-                Contact contact=new Contact(Integer.valueOf(cursor.getString(0)),cursor.getString(1),cursor.getString(2));
-                contacts.add(contact);
+            if (cursor.getCount() > 0) {
+                while (cursor.moveToNext()) {
+                    Contact contact = new Contact(Integer.valueOf(cursor.getString(0)), cursor.getString(1), cursor.getString(2));
+                    contacts.add(contact);
+                }
             }
+        }
+        catch(SecurityException e){
         }
     }
     public void callInserting(String name) {
