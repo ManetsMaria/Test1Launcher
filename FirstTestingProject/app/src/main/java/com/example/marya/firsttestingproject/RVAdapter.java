@@ -45,13 +45,21 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         public ImageView programmPhoto;
         Context context;
         RelativeLayout cv;
+        LinearLayout span;
 
-        public ProgrammViewHolder(View itemView, Context context) {
+        public ProgrammViewHolder(View itemView, Context context, int i) {
             super(itemView);
             this.context=context;
-            cv = (RelativeLayout) itemView.findViewById(R.id.cv);
-            programmName = (TextView)itemView.findViewById(R.id.programm_name);
-            programmPhoto = (ImageView)itemView.findViewById(R.id.programm_photo);
+            Log.d("check", "constructor"+String.valueOf(i));
+            if (i==3){
+            span=(LinearLayout)itemView.findViewById(R.id.span);
+               programmName=(TextView) itemView.findViewById(R.id.diveder_text);
+            }
+            else {
+                cv = (RelativeLayout) itemView.findViewById(R.id.cv);
+                programmPhoto = (ImageView) itemView.findViewById(R.id.programm_photo);
+                programmName = (TextView) itemView.findViewById(R.id.programm_name);
+            }
         }
     }
     Context context;
@@ -94,18 +102,24 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
 
     @Override
     public ProgrammViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        Log.d("check", "create"+String.valueOf(i)+" "+String.valueOf(getItemViewType(i)));
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.card_view, viewGroup, false);
         //  ProgrammViewHolder pvh = new ProgrammViewHolder(v, context);
         int width = viewGroup.getMeasuredWidth() / (column);
         v.setMinimumWidth(width);
         //v.setMinimumHeight(0);
-        return new ProgrammViewHolder(v, context);
+        if (i==3){
+            v=LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.span, viewGroup,false);
+        }
+        return new ProgrammViewHolder(v, context, i);
     }
     @Override
     public int getItemViewType(int i){
-        if (i<column)
+        if (i==0 || i==column+1 || i==column*2+2)
+            return 3;
+        if (i<=column)
             return 0;
-        if (i>=column && i<column*2)
+        if (i>=column && i<=column*2+1)
             return 1;
         return 2;
     }
@@ -113,14 +127,18 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
     public void onBindViewHolder(final ProgrammViewHolder personViewHolder, final int i) {
         int type=getItemViewType(i);
         switch (type) {
+            case 3:{
+                if (i==0)
+                personViewHolder.programmName.setText("popular");
+                if (i==column+1)
+                    personViewHolder.programmName.setText("new");
+                if (i==column*2+2)
+                    personViewHolder.programmName.setText("my application");
+                break;
+            }
             case 2: {
-                    if (i-2*column==0) {
-                        personViewHolder.programmName.setText(context.getString(R.string.myAp)+" "+programms.get(i - 2 * column).name);
-                    }
-                    else{
-                        personViewHolder.programmName.setText(programms.get(i-2*column).name);
-                    }
-                    personViewHolder.programmPhoto.setImageDrawable(programms.get(i-2*column).photoId);
+                    personViewHolder.programmName.setText(programms.get(i-2*column-3).name);
+                    personViewHolder.programmPhoto.setImageDrawable(programms.get(i-2*column-3).photoId);
 
                     personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                     @Override
@@ -130,21 +148,21 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                         menu.add(R.string.delete).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextDelete(programms.get(i-2*column));
+                                contextDelete(programms.get(i-2*column-3));
                                 return true;
                             }
                         });
                         menu.add(R.string.info).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextInfo(programms.get(i-2*column));
+                                contextInfo(programms.get(i-2*column-3));
                                 return true;
                             }
                         });
                         menu.add("to favorite").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextFavorite(programms.get(i-2*column));
+                                contextFavorite(programms.get(i-2*column-3));
                                 return true;
                             }
                         });
@@ -153,7 +171,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                 View.OnClickListener listener = new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        quikClick(programms.get(i-2*column));
+                        quikClick(programms.get(i-2*column-3));
                     }
                 };
                 personViewHolder.cv.setOnClickListener(listener);
@@ -161,12 +179,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
             }
             case 0:{
                 Log.d("here", "0");
-                if (i==0)
-                    personViewHolder.programmName.setText(context.getString(R.string.popAp)+" "+popular.get(i).name);
-                else {
-                    personViewHolder.programmName.setText(popular.get(i).name);
-                }
-                personViewHolder.programmPhoto.setImageDrawable(popular.get(i).photoId);
+                personViewHolder.programmName.setText(popular.get(i-1).name);
+                personViewHolder.programmPhoto.setImageDrawable(popular.get(i-1).photoId);
                 personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                     @Override
                     public void onCreateContextMenu(ContextMenu menu, View v,
@@ -175,21 +189,21 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                         menu.add(R.string.delete).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextDelete(popular.get(i));
+                                contextDelete(popular.get(i-1));
                                 return true;
                             }
                         });
                         menu.add(R.string.info).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextInfo(popular.get(i));
+                                contextInfo(popular.get(i-1));
                                 return true;
                             }
                         });
                         menu.add("to favorite").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextFavorite(popular.get(i));
+                                contextFavorite(popular.get(i-1));
                                 return true;
                             }
                         });
@@ -198,20 +212,15 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                 View.OnClickListener listener = new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        quikClick(popular.get(i));
+                        quikClick(popular.get(i-1));
                     }
                 };
                 personViewHolder.cv.setOnClickListener(listener);
                 break;
             }
             case 1:{
-                Log.d("here", "1");
-                if (i-column==0)
-                    personViewHolder.programmName.setText(context.getString(R.string.newAp)+" "+news.get(i-column).name);
-                else{
-                    personViewHolder.programmName.setText(news.get(i-column).name);
-                }
-                personViewHolder.programmPhoto.setImageDrawable(news.get(i-column).photoId);
+                    personViewHolder.programmName.setText(news.get(i-column-2).name);
+                personViewHolder.programmPhoto.setImageDrawable(news.get(i-column-2).photoId);
                 personViewHolder.cv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                     @Override
                     public void onCreateContextMenu(ContextMenu menu, View v,
@@ -220,21 +229,21 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                         menu.add(R.string.delete).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextDelete(news.get(i-column));
+                                contextDelete(news.get(i-column-2));
                                 return true;
                             }
                         });
                         menu.add(R.string.info).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextInfo(news.get(i-column));
+                                contextInfo(news.get(i-column-2));
                                 return true;
                             }
                         });
                         menu.add("to favorite").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                contextFavorite(news.get(i-column));
+                                contextFavorite(news.get(i-column-2));
                                 return true;
                             }
                         });
@@ -243,7 +252,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
                 View.OnClickListener listener = new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        quikClick(news.get(i-column));
+                        quikClick(news.get(i-column-2));
                     }
                 };
                 personViewHolder.cv.setOnClickListener(listener);
@@ -263,13 +272,13 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
     public void remove(String label){
         int i=indexOf(programms,new Programm("name",context.getResources().getDrawable(R.drawable.angrybirds2),label ));
         Programm p=programms.get(i);
-        notifyItemRemoved(i+2*column);
+        notifyItemRemoved(i+2*column+3);
         int index=indexOf(popular,p);
         int ind=indexOf(favorites,p);
         if (ind>=0)
             favorites.remove(ind);
         Log.d("delete",String.valueOf(index));
-        if (index>=0 && index<column) {
+        if (index>0 && index<=column) {
             notifyItemRemoved(index);
         }
         if (index>=0){
@@ -303,26 +312,24 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
     }
     private void contextInfo(Programm p){
         int index=indexOf(popular,p);
-        if (index>=0){
+        if (index>0){
             p=popular.get(index);
             popular.remove(index);
             if (index<column)
-                notifyItemChanged(index);
+                notifyItemRangeChanged(1, column+1);
         }
 
         p.count++;
         int flag=-1;
-        for (int i=0; i<7; i++){
+        for (int i=0; i<=7; i++){
             if (popular.get(i).count<p.count){
                 popular.add(i,p);
                 flag=i;
                 break;
             }
         }
-        if (flag>=0 && flag<column){
-            for (int j=0; j<column; j++){
-                notifyItemChanged(j);
-            }
+        if (flag>0 && flag<=column){
+            notifyItemRangeChanged(1, column+1);
         }
         else {
             popular.add(p);
@@ -337,13 +344,13 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         if (index>=0){
             p=popular.get(index);
             popular.remove(index);
-            if (index<column)
-                notifyItemChanged(index);
+            if (index<=column)
+                notifyItemRangeChanged(1,column+1);
         }
 
         p.count++;
         int flag=-1;
-        for (int i=0; i<7; i++){
+        for (int i=0; i<=7; i++){
             if (popular.get(i).count<p.count){
                 popular.add(i,p);
                 flag=i;
@@ -351,9 +358,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
             }
         }
         if (flag>=0 && flag<column){
-            for (int j=0; j<column; j++){
-                notifyItemChanged(j);
-            }
+            notifyItemRangeChanged(1, column+1);
         }
         else {
             popular.add(p);
@@ -369,13 +374,13 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         if (index>=0){
             p=popular.get(index);
             popular.remove(index);
-            if (index<column)
-                notifyItemChanged(index);
+            if (index<=column)
+                notifyItemRangeChanged(1, column+1);
         }
 
         p.count++;
         int flag=-1;
-        for (int i=0; i<7; i++){
+        for (int i=0; i<=7; i++){
             if (popular.get(i).count<p.count){
                 popular.add(i,p);
                 flag=i;
@@ -384,7 +389,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
         }
         if (flag>=0 && flag<column){
             for (int j=0; j<column; j++){
-                notifyItemChanged(j);
+                notifyItemRangeChanged(1, column+1);
             }
         }
         else {
@@ -400,6 +405,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ProgrammViewHolder
     }
     @Override
     public int getItemCount() {
-        return programms.size()+2*column-1;
+        return programms.size()+2*column+3;
     }
 }

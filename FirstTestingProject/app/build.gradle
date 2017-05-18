@@ -17,7 +17,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            project.ext.set("archivesBaseName", "3testingproject" );
+            project.ext.set("archivesBaseName", "3testingproject");
         }
     }
 

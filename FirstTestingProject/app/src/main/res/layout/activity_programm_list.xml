@@ -27,18 +27,30 @@
         android:background="@color/colorAccent"
         android:layout_gravity="bottom"
         app:menu="@menu/main" />
-
-    <AutoCompleteTextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="47dp"
-        android:layout_gravity="top"
-        android:id="@+id/editText"
-        android:hint="input uri or contact name to add on favorite"
-        android:textColorHint="#505050"
-        android:imeOptions="actionGo"
-        android:singleLine="true"
-        android:focusableInTouchMode="true"
-        android:completionThreshold="1"
-        />
+        android:layout_height="80dp"
+        android:orientation="horizontal">
+        <AutoCompleteTextView
+            android:layout_width="wrap_content"
+            android:layout_height="47dp"
+            android:layout_gravity="top"
+            android:id="@+id/editText"
+            android:hint="input uri"
+            android:textColorHint="#505050"
+            android:imeOptions="actionGo"
+            android:singleLine="true"
+            android:focusableInTouchMode="true"
+            android:completionThreshold="1"
+            android:layout_weight="1"
+            />
+        <Button
+            android:layout_height="47dp"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:text="+contact"
+            android:onClick="click"
+            />
+    </LinearLayout>
 
 </FrameLayout>

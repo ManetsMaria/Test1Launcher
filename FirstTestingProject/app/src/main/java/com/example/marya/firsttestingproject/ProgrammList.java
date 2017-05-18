@@ -77,14 +77,18 @@ public class ProgrammList extends Activity {
     AutoCompleteTextView textView;
     SharedPreferences sPref;
     SharedPreferences shareUri;
+    SharedPreferences shareContacts;
     DBHelper dbHelper;
     SQLiteDatabase db;
     String str;
     String readPrevious;
     private static List<Contact>forFavorite;
     private static List<Contact> contacts=new ArrayList<>();
+    Intent intent;
+    String previousContact;
+    GridLayoutManager llm;
 
-   public class DBHelper extends SQLiteOpenHelper {
+    public class DBHelper extends SQLiteOpenHelper {
 
         public DBHelper(Context context) {
             // конструктор суперкласса
@@ -117,6 +121,7 @@ public class ProgrammList extends Activity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
         shareUri=getSharedPreferences("uries",MODE_PRIVATE);
+        shareContacts=getSharedPreferences("contacts",MODE_PRIVATE);
         readFromDatabaseUri();
         fragment=(FragmentList) getLastNonConfigurationInstance();
         initData();
@@ -177,31 +182,22 @@ public class ProgrammList extends Activity {
                 c.close();
                 Log.d("dontknow", "hbn");
             }
-        c = db.query("mytable4", null, null, null, null, null, null);
-        if (c.moveToFirst()) {
-            int index = c.getColumnIndex("contacts");
-            do {
-                str=c.getString(index);
-            } while (c.moveToNext());
-            if (!str.equals("")) {
-                List<String> fav = Arrays.asList(str.split(";"));
+                previousContact=shareContacts.getString("allContacts","");
+                if (!previousContact.equals("")) {
+                List<String> fav = Arrays.asList(previousContact.split(";"));
                 Log.d("gh", String.valueOf(fav.size()));
                 Log.d("gh", fav.toString());
-                for (int i = 0; i < fav.size(); i++) {
-                    int j = 0;
-                    Log.d("gh", String.valueOf(fav.size()));
-                    int id = Integer.valueOf(fav.get(i));
-                    while (j < contacts.size() && contacts.get(j).id != id) {
-                        j++;
+                    for (int i = 0; i < fav.size(); i++) {
+                        int j = 0;
+                        Log.d("gh", String.valueOf(fav.size()));
+                        int id = Integer.valueOf(fav.get(i));
+                        while (j < contacts.size() && contacts.get(j).id != id) {
+                            j++;
+                        }
+                        if (j < contacts.size())
+                            forFavorite.add(contacts.get(j));
                     }
-                    if (j < contacts.size())
-                        forFavorite.add(contacts.get(j));
                 }
-            }
-        } else{
-            c.close();
-            Log.d("dontknow", "hbn");
-        }
 
         /*else{
             Log.d("zaeb", "fragment true clearTrue");
@@ -233,12 +229,23 @@ public class ProgrammList extends Activity {
         Log.d("hueri", uries.toString());
         column=sPref.getInt("Column", R.integer.columnstandart);
         theme=sPref.getInt("Theme", R.style.AppTheme);
-        Intent intent=getIntent();
+        intent=getIntent();
         screne=intent.getIntExtra("screneNumber", 0);
         setTheme(theme);
         setContentView(R.layout.activity_programm_list);
         rv = (RecyclerView) findViewById(R.id.rv);
-        GridLayoutManager llm = new GridLayoutManager(this, getResources().getInteger(column));
+        llm = new GridLayoutManager(this, getResources().getInteger(column));
+        llm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+
+            @Override
+            public int getSpanSize(int position) {
+                switch (adapter.getItemViewType(position)) {
+                    case 3:
+                        return getResources().getInteger(column);
+                }
+                return 1;
+            }
+        });
         rv.setLayoutManager(llm);
         Log.d("popular", popular.toString());
         adapter=new RVAdapter(programms,popular,news,favorites, ProgrammList.this, getResources().getInteger(column),manager);
@@ -255,6 +262,7 @@ public class ProgrammList extends Activity {
                         switch (item.getItemId()) {
                             case R.id.action_search:
                                 setfirst();
+                                intent.putExtra("screneNumber", 0);
                                 if (favoritesAdapter!=null) {
                                     popular=favoritesAdapter.getPopular();
                                     favorites=favoritesAdapter.getFavorites();
@@ -262,6 +270,7 @@ public class ProgrammList extends Activity {
                                     adapter.setNewFavorites(favorites);
                                     adapter.notifyItemRangeChanged(0, adapter.getItemCount());
                                 }
+
                                 rv.setAdapter(adapter);
                                 break;
                             case R.id.action_settings:
@@ -270,6 +279,7 @@ public class ProgrammList extends Activity {
                                 break;
                             case R.id.action_navigation:
                                 //Toast.makeText(ProgrammList.this, str, Toast.LENGTH_LONG).show();
+                                intent.putExtra("screneNumber", 1);
                                 if (!sPref.getBoolean("saveFav", false))
                                     makeSecond();
                                 break;
@@ -311,19 +321,7 @@ public class ProgrammList extends Activity {
                         Log.d("hueri", "after start act");
                     }
                     catch (ActivityNotFoundException e){
-                        Log.d("hueri", "catch");
-                        int index=contacts.indexOf(new Contact(9,uri,"h"));
-                        if (index>=0){
-                           Contact contact=contacts.get(index);
-                           if (forFavorite.indexOf(contact)<0) {
-                               forFavorite.add(contact);
-                               favoritesAdapter.insertContact(forFavorite);
-                           }
-                            Toast.makeText(ProgrammList.this, "add", Toast.LENGTH_SHORT).show();
-                        }
-                        else {
-                            Toast.makeText(ProgrammList.this, "wrong uri", Toast.LENGTH_SHORT).show();
-                        }
+                        Toast.makeText(ProgrammList.this, "wrong uri", Toast.LENGTH_SHORT).show();
                     }
                     finally {
                         Log.d("hueri", "finally");
@@ -344,23 +342,41 @@ public class ProgrammList extends Activity {
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         this.registerReceiver(br, intentFilter);
         rv.addItemDecoration(new RecyclerView.ItemDecoration() {
-            Paint mPaint = new Paint();
             @Override
             public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
                 outRect.left=2;
                 outRect.right=2;
                 outRect.bottom=20;
+                int count = parent.getChildCount();
+                for (int i = 0; i < count; i++) {
+                    View child = parent.getChildAt(i);
+                    int position = parent.getChildAdapterPosition(child);
+                    if (adapter.getItemViewType(position) == 3 &&
+                            position % 2 == 1) {
+                        outRect.left=0;
+                        outRect.right=0;
+                        outRect.bottom=0;
+                    }
+                }
             }
+
+            Paint mPaint = new Paint();
 
             @Override
             public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-
             }
         });
         Log.d("fav", String.valueOf(favorites.size()));
         if (screne==1){
             Log.d("fav", String.valueOf(favorites.size())+" screne1");
             makeSecond();
+            llm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+
+                @Override
+                public int getSpanSize(int position) {
+                    return 1;
+                }
+            });
         }
     }
     public void setfirst(){
@@ -371,6 +387,17 @@ public class ProgrammList extends Activity {
         item.setChecked(true);
         item=menu.getItem(2);
         item.setChecked(false);
+        llm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+
+            @Override
+            public int getSpanSize(int position) {
+                switch (adapter.getItemViewType(position)) {
+                    case 3:
+                        return getResources().getInteger(column);
+                }
+                return 1;
+            }
+        });
     }
     public void makeSecond(){
         BottomNavigationView bottomNavigationView = (BottomNavigationView)
@@ -385,6 +412,13 @@ public class ProgrammList extends Activity {
         Log.d("fav", String.valueOf(favorites.size())+" favadapt");
         favoritesAdapter=new FavoritesAdapter(favorites,popular,ProgrammList.this,getResources().getInteger(column),manager, forFavorite);
         rv.setAdapter(favoritesAdapter);
+        llm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+
+            @Override
+            public int getSpanSize(int position) {
+                return 1;
+            }
+        });
     }
     public Object onRetainNonConfigurationInstance() {
         fragment=new FragmentList();
@@ -413,15 +447,6 @@ public class ProgrammList extends Activity {
         }
         cv.put("favorite",eba);
         rowID = db.insert("mytable3", null, cv);
-
-        cv = new ContentValues();
-        eba="";
-        for (int i=0; i<forFavorite.size();i++){
-            eba=eba+forFavorite.get(i).id+";";
-        }
-        cv.put("contacts",eba);
-        rowID = db.insert("mytable4", null, cv);
-        Log.d("zaeb", "onDestroy");
 
     }
     @Override
@@ -462,14 +487,6 @@ public class ProgrammList extends Activity {
         cv.put("favorite",eba);
         rowID = db.insert("mytable3", null, cv);
         super.onStop();
-        cv = new ContentValues();
-        eba="";
-        for (int i=0; i<forFavorite.size();i++){
-            eba=eba+forFavorite.get(i).id+";";
-        }
-        cv.put("contacts",eba);
-        rowID = db.insert("mytable4", null, cv);
-        Log.d("zaeb", "onStop");
     }
     public void initData(){
         manager = getPackageManager();
@@ -479,18 +496,13 @@ public class ProgrammList extends Activity {
         i.addCategory(Intent.CATEGORY_LAUNCHER);
 
         List<ResolveInfo> availableActivities = manager.queryIntentActivities(i, 0);
-        Programm me=new Programm("me",getResources().getDrawable(R.mipmap.ic_launcher),"com.example.marya.firsttestingproject");
         for(ResolveInfo ri:availableActivities){
             Programm app = new Programm((String)ri.loadLabel(manager), ri.activityInfo.loadIcon(manager), ri.activityInfo.packageName);
             Log.d("packet",app.label);
             if (ri.activityInfo.packageName.compareTo("com.example.marya.firsttestingproject")!=0 && indexOf(programms, app)<0) {
                 programms.add(app);
             }
-            else{
-                me=app;
-            }
         }
-        programms.add(me);
         try {
             Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, new String[]{ContactsContract.CommonDataKinds.Phone.CONTACT_ID, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}, null, null, null);
             startManagingCursor(cursor);
@@ -565,10 +577,12 @@ public class ProgrammList extends Activity {
         readPrevious="";
         if (sPref.getBoolean("clearUri", false)){
             SharedPreferences.Editor ed = sPref.edit();
+            readPrevious="";
             ed.putBoolean("clearUri", false);
             ed.apply();
             SharedPreferences.Editor urEd=shareUri.edit();
             urEd.putString("allUri","");
+            urEd.apply();
             Log.d("zaeb", "fragment false clearTrue");
             //db.delete("mytable1", null, null);
         }
@@ -605,6 +619,7 @@ public class ProgrammList extends Activity {
             uries.remove(index);
             uries.add(uri);
         }
+        Log.d("ur", readPrevious);
         //ContentValues cv = new ContentValues();
             readPrevious=readPrevious+uri+"uriTime:"+String.valueOf(System.currentTimeMillis()/(1000 * 60 * 60 * 24))+";";
         //cv.put("uries", readPrevious);
@@ -612,5 +627,9 @@ public class ProgrammList extends Activity {
         SharedPreferences.Editor ed = shareUri.edit();
         ed.putString("allUri", readPrevious);
         ed.apply();
+    }
+    public void click(View view){
+        Intent i=new Intent(this,ContactList.class);
+        startActivity(i);
     }
 }

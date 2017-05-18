@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.marya.firsttestingproject">
 
-    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <permission
         android:name="com.example.marya.firsttestingproject.permission"
         android:protectionLevel="dangerous" />
@@ -12,6 +13,7 @@
     <permission
         android:name="com.example.marya.firsttestingproject.permission.READ_ALL"
         android:protectionLevel="dangerous" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -31,7 +33,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".MainActivity" />
         <activity android:name=".ProgrammList" />
 
         <receiver android:name=".Receiver">
@@ -44,13 +46,16 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".Setting"></activity>
+        <activity android:name=".Setting" />
+
         <provider
-                    android:authorities="com.example.marya.firsttestingproject"
-                    android:name=".UriContentProvider"
-                    android:exported="true"
-                    android:permission="com.example.marya.firsttestingproject.permission"
-                    android:writePermission="com.example.marya.firsttestingproject.permission.WRITE"/>
+            android:name=".UriContentProvider"
+            android:authorities="com.example.marya.firsttestingproject"
+            android:exported="true"
+            android:permission="com.example.marya.firsttestingproject.permission"
+            android:writePermission="com.example.marya.firsttestingproject.permission.WRITE" />
+
+        <activity android:name=".ContactList"></activity>
     </application>
 
 </manifest>
