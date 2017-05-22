@@ -5,7 +5,11 @@
     android:background="?attr/colorPrimary"
     >
 
-
+    <ImageView
+        android:id="@+id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="background_image" />
     <!-- Первый дочений элемент - основной контент шаблона.
     Может быть чем угодно, но должен быть match_parent и в ширину и в высоту. -->
         <android.support.v7.widget.RecyclerView

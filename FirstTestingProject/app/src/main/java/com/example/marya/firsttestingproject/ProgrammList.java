@@ -3,6 +3,7 @@ package com.example.marya.firsttestingproject;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -15,6 +16,8 @@ import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -22,6 +25,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.internal.NavigationMenu;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -42,15 +46,22 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
@@ -84,9 +95,14 @@ public class ProgrammList extends Activity {
     String readPrevious;
     private static List<Contact>forFavorite;
     private static List<Contact> contacts=new ArrayList<>();
-    Intent intent;
     String previousContact;
     GridLayoutManager llm;
+    BroadcastReceiver broadcastReceiver;
+    Intent intent;
+    long lastUpdate;
+    private Toast toast;
+    private ImageView backgroundImage;
+    public Bitmap bitmap;
 
     public class DBHelper extends SQLiteOpenHelper {
 
@@ -231,7 +247,13 @@ public class ProgrammList extends Activity {
         theme=sPref.getInt("Theme", R.style.AppTheme);
         intent=getIntent();
         screne=intent.getIntExtra("screneNumber", 0);
+        lastUpdate = sPref.getLong("lastUpdate", 0);
+        if (checkUpdateTime()) {
+            initUpdateBackground();
+            //setPictureBackground();
+        }
         setTheme(theme);
+
         setContentView(R.layout.activity_programm_list);
         rv = (RecyclerView) findViewById(R.id.rv);
         llm = new GridLayoutManager(this, getResources().getInteger(column));
@@ -262,6 +284,10 @@ public class ProgrammList extends Activity {
                         switch (item.getItemId()) {
                             case R.id.action_search:
                                 setfirst();
+                                if (checkUpdateTime()) {
+                                    initUpdateBackground();
+                                    //setPictureBackground();
+                                }
                                 intent.putExtra("screneNumber", 0);
                                 if (favoritesAdapter!=null) {
                                     popular=favoritesAdapter.getPopular();
@@ -274,10 +300,18 @@ public class ProgrammList extends Activity {
                                 rv.setAdapter(adapter);
                                 break;
                             case R.id.action_settings:
+                                if (checkUpdateTime()) {
+                                    initUpdateBackground();
+                                    //setPictureBackground();
+                                }
                                 Intent i=new Intent(ProgrammList.this, Setting.class);
                                 startActivity(i);
                                 break;
                             case R.id.action_navigation:
+                                if (checkUpdateTime()) {
+                                    initUpdateBackground();
+                                    //setPictureBackground();
+                                }
                                 //Toast.makeText(ProgrammList.this, str, Toast.LENGTH_LONG).show();
                                 intent.putExtra("screneNumber", 1);
                                 if (!sPref.getBoolean("saveFav", false))
@@ -378,6 +412,7 @@ public class ProgrammList extends Activity {
                 }
             });
         }
+        initBackground();
     }
     public void setfirst(){
         BottomNavigationView bottomNavigationView = (BottomNavigationView)
@@ -447,7 +482,9 @@ public class ProgrammList extends Activity {
         }
         cv.put("favorite",eba);
         rowID = db.insert("mytable3", null, cv);
-
+        if (broadcastReceiver != null) {
+            unregisterReceiver(broadcastReceiver);
+        }
     }
     @Override
     protected void onResume() {
@@ -631,5 +668,71 @@ public class ProgrammList extends Activity {
     public void click(View view){
         Intent i=new Intent(this,ContactList.class);
         startActivity(i);
+    }
+    private void initBackground() {
+        backgroundImage = (ImageView) findViewById(R.id.background);
+        backgroundImage.setAlpha(0.5f);
+        setPictureBackground();
+    }
+    public void initUpdateBackground() {
+        if (broadcastReceiver == null) {
+            initBroadcast();
+        }
+        intent = new Intent(this, ForPictureService.class);
+        //intent.putExtra("url", "http://api-fotki.yandex.ru/api/podhistory/poddate/?limit=96");
+        startService(intent);
+        sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+    }
+    private boolean checkUpdateTime() {
+        return System.currentTimeMillis() - lastUpdate > getCurrentInterval();
+    }
+    private void initBroadcast() {
+        broadcastReceiver = new BroadcastReceiver() {
+
+            public void onReceive(Context context, Intent intent) {
+                int status = intent.getIntExtra("status", 0);
+                if (status == 1) {
+                }
+                else if (status == 0) {
+                }
+            }
+        };
+        IntentFilter intFilt = new IntentFilter("Loading");
+        registerReceiver(broadcastReceiver, intFilt);
+    }
+    private void showMessage(String text) {
+        if (toast != null) {
+            toast.cancel();
+        }
+        toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+    private void setPictureBackground() {
+            //backgroundImage.setImageDrawable(this.getResources().getDrawable(R.drawable.ic_cloud_black));
+            bitmap = decodeBitmap();
+            if (bitmap != null) {
+                backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                backgroundImage.setImageBitmap(bitmap);
+                sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+            }
+    }
+    @Nullable
+    public Bitmap decodeBitmap() {
+        try {
+            FileInputStream is = openFileInput("bitmap.png");
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            is.close();
+            return bitmap;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (OutOfMemoryError a){
+            Toast.makeText(this, "сервис перегружен, пожалуйста, запустите приложение ещё раз", Toast.LENGTH_LONG).show();
+        }
+        return null;
+    }
+    public long getCurrentInterval() {
+        return (60 * 60 * 1000) / 4;
     }
 }

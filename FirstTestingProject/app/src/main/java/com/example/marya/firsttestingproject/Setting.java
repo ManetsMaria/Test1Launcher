@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Binder;
 import android.provider.ContactsContract;
@@ -11,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,11 +21,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -34,6 +40,8 @@ public class Setting extends AppCompatActivity {
     RadioGroup size;
     RadioGroup theme;
     SharedPreferences sPref;
+    ImageView imageView;
+    Bitmap bitmap;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +51,7 @@ public class Setting extends AppCompatActivity {
         clearUri=(Button)findViewById(R.id.clearUri);
         size=(RadioGroup)findViewById(R.id.radioGroupSet);
         theme=(RadioGroup)findViewById(R.id.radioGroupSet2);
+        imageView=(ImageView) findViewById(R.id.settingImage);
         sPref = getSharedPreferences("mysettings",MODE_PRIVATE);
         BottomNavigationView bottomNavigationView = (BottomNavigationView)
                 findViewById(R.id.navigation);
@@ -118,6 +127,25 @@ public class Setting extends AppCompatActivity {
                 return false;
             }
         });
+        imageView.setAlpha(0.5f);
+        if (getIntent().getIntExtra("flag", 1)==1) {
+            try {
+                FileInputStream is = openFileInput("bitmap.png");
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                Log.d("setting", "try");
+                if (bitmap != null) {
+                    Log.d("setting", "set");
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageView.setImageBitmap(bitmap);
+                }
+                is.close();
+            } catch (IOException e) {
+                Log.d("setting", "exception");
+                e.printStackTrace();
+            } catch (OutOfMemoryError a) {
+                Toast.makeText(this, "сервис перегружен, пожалуйста, запустите приложение ещё раз", Toast.LENGTH_LONG).show();
+            }
+        }
     }
     public void settingClick(View view){
             SharedPreferences.Editor ed = sPref.edit();
