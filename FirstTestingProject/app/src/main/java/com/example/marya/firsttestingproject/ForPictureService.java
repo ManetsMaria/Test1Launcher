@@ -13,9 +13,11 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,11 +92,6 @@ public class ForPictureService extends Service {
         }
         @Override
         protected Bitmap doInBackground(final Void... params) {
-            int flag =sharedPreferences.getInt("counter",0);
-            if (flag==0){
-                mImageLoader.getImageUrls(getApplicationContext());
-                sharedPreferences.edit().putInt("counter", 1).apply();
-            }
             Bitmap drawable = null;
             if (isCancelled() == false) {
                 drawable = loadImage();
@@ -107,9 +104,17 @@ public class ForPictureService extends Service {
         protected void onPostExecute(final Bitmap bitmapDrawable) {
             try {
                 if (bitmapDrawable!=null) {
+                    Log.d("urls","null");
                     FileOutputStream stream = openFileOutput("bitmap.png", Context.MODE_PRIVATE);
                     bitmapDrawable.compress(Bitmap.CompressFormat.PNG, 100, stream);
                     stream.close();
+                    ByteArrayOutputStream str = new ByteArrayOutputStream();
+                    bitmapDrawable.compress(Bitmap.CompressFormat.PNG, 100, str);
+                    byte[] byteArray = str.toByteArray();
+                    String saveThis = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                    SharedPreferences sPref = getSharedPreferences("mysettings",MODE_PRIVATE);
+                    sPref.edit().putString("image", saveThis);
+                    Log.d("picture", String.valueOf(byteArray));
                 }
             }
             catch (IOException e) {

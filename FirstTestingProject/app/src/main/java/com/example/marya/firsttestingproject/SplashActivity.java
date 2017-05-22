@@ -55,7 +55,11 @@ public class SplashActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ForPictureService.class);
         //intent.putExtra("url", "http://api-fotki.yandex.ru/api/podhistory/poddate/?limit=96");
         startService(intent);
-        sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+        Bitmap bitmap = decodeBitmap();
+        if (bitmap != null) {
+            sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+        }
+       //
     }
     private boolean checkUpdateTime() {
         Long lastUpdate = sPref.getLong("lastUpdate", 0);
@@ -64,5 +68,20 @@ public class SplashActivity extends AppCompatActivity {
 
     public long getCurrentInterval() {
         return (60 * 60 * 1000) / 4;
+    }
+    public Bitmap decodeBitmap() {
+        try {
+            FileInputStream is = openFileInput("bitmap.png");
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            is.close();
+            return bitmap;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (OutOfMemoryError a){
+            Toast.makeText(this, "сервис перегружен, пожалуйста, запустите приложение ещё раз", Toast.LENGTH_LONG).show();
+        }
+        return null;
     }
 }

@@ -34,6 +34,7 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -51,6 +52,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -248,13 +250,14 @@ public class ProgrammList extends Activity {
         intent=getIntent();
         screne=intent.getIntExtra("screneNumber", 0);
         lastUpdate = sPref.getLong("lastUpdate", 0);
-        if (checkUpdateTime()) {
-            initUpdateBackground();
-            //setPictureBackground();
-        }
         setTheme(theme);
 
         setContentView(R.layout.activity_programm_list);
+        initBackground();
+        if (checkUpdateTime()) {
+            initUpdateBackground(0);
+            //setPictureBackground();
+        }
         rv = (RecyclerView) findViewById(R.id.rv);
         llm = new GridLayoutManager(this, getResources().getInteger(column));
         llm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -284,8 +287,9 @@ public class ProgrammList extends Activity {
                         switch (item.getItemId()) {
                             case R.id.action_search:
                                 setfirst();
+                                initBackground();
                                 if (checkUpdateTime()) {
-                                    initUpdateBackground();
+                                    initUpdateBackground(0);
                                     //setPictureBackground();
                                 }
                                 intent.putExtra("screneNumber", 0);
@@ -301,15 +305,16 @@ public class ProgrammList extends Activity {
                                 break;
                             case R.id.action_settings:
                                 if (checkUpdateTime()) {
-                                    initUpdateBackground();
+                                    initUpdateBackground(0);
                                     //setPictureBackground();
                                 }
                                 Intent i=new Intent(ProgrammList.this, Setting.class);
                                 startActivity(i);
                                 break;
                             case R.id.action_navigation:
+                                initBackground();
                                 if (checkUpdateTime()) {
-                                    initUpdateBackground();
+                                    initUpdateBackground(0);
                                     //setPictureBackground();
                                 }
                                 //Toast.makeText(ProgrammList.this, str, Toast.LENGTH_LONG).show();
@@ -412,7 +417,6 @@ public class ProgrammList extends Activity {
                 }
             });
         }
-        initBackground();
     }
     public void setfirst(){
         BottomNavigationView bottomNavigationView = (BottomNavigationView)
@@ -674,16 +678,27 @@ public class ProgrammList extends Activity {
         backgroundImage.setAlpha(0.5f);
         setPictureBackground();
     }
-    public void initUpdateBackground() {
+    public void initUpdateBackground(int flag) {
         if (broadcastReceiver == null) {
             initBroadcast();
         }
+        Log.d("init", "now");
         intent = new Intent(this, ForPictureService.class);
         //intent.putExtra("url", "http://api-fotki.yandex.ru/api/podhistory/poddate/?limit=96");
         startService(intent);
-        sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+        if (flag==0) {
+            bitmap = decodeBitmap();
+            if (bitmap != null) {
+                backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                backgroundImage.setImageBitmap(bitmap);
+                sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+            }
+        }
     }
     private boolean checkUpdateTime() {
+        Log.d("time",String.valueOf(lastUpdate ));
+        Log.d("time",String.valueOf(System.currentTimeMillis()));
+        Log.d("time",String.valueOf(getCurrentInterval()));
         return System.currentTimeMillis() - lastUpdate > getCurrentInterval();
     }
     private void initBroadcast() {
@@ -710,10 +725,11 @@ public class ProgrammList extends Activity {
     private void setPictureBackground() {
             //backgroundImage.setImageDrawable(this.getResources().getDrawable(R.drawable.ic_cloud_black));
             bitmap = decodeBitmap();
+       // byte[] array = Base64.decode(sPref.getString("image",""), Base64.DEFAULT);
+       // bitmap = BitmapFactory.decodeByteArray(array, 0, array.length);
             if (bitmap != null) {
                 backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 backgroundImage.setImageBitmap(bitmap);
-                sPref.edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
             }
     }
     @Nullable
@@ -729,6 +745,12 @@ public class ProgrammList extends Activity {
         }
         catch (OutOfMemoryError a){
             Toast.makeText(this, "сервис перегружен, пожалуйста, запустите приложение ещё раз", Toast.LENGTH_LONG).show();
+            /*byte[] array = Base64.decode(sPref.getString("image",""), Base64.DEFAULT);
+            bitmap = BitmapFactory.decodeByteArray(array, 0, array.length);
+            backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            backgroundImage.setImageBitmap(bitmap);
+            Log.d("picture", String.valueOf(array));*/
+            //initUpdateBackground(1);
         }
         return null;
     }

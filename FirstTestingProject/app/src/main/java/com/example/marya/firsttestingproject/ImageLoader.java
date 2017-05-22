@@ -80,38 +80,34 @@ class ImageLoader {
             e.printStackTrace();
             Log.d("array", "here");
         }
+        catch (OutOfMemoryError a){
+
+        }
         return null;
     }
 
     @Nullable
     String getImageUrl(Context context) {
-        sharedPreferences = context.getSharedPreferences("urls",MODE_PRIVATE);
-        String str=sharedPreferences.getString("urls","");
-        if (!str.equals("")){
-        mImageUrls = Arrays.asList(str.split(" "));
-            Log.d("array", mImageUrls.toString());
-            /*final int index = new Random().nextInt(mImageUrls.size());
-            return imageUrls.get(index);*/
-        } else {
-            mImageUrls=getImageUrls(context);
-            return null;
+        sharedPreferences = context.getSharedPreferences("mysettings",MODE_PRIVATE);
+        int counter=sharedPreferences.getInt("counter", 0);
+        mImageUrls=getImageUrls();
+        if (!mImageUrls.isEmpty()) {
+            //int index = new Random().nextInt(mImageUrls.size());
+            String irl = mImageUrls.get(counter);
+            counter++;
+            sharedPreferences.edit().putInt("counter", counter).apply();
+            Log.d("urls",irl);
+            Log.d("urls",String.valueOf(sharedPreferences.getInt("counter", 0)));
+            return irl;
         }
-        int index=new Random().nextInt(mImageUrls.size());
-        String irl=mImageUrls.get(index);
-        //mImageUrls.remove(irl);
-        str="";
-        for (int i=0; i<mImageUrls.size(); i++){
-            if (i!=index)
-            str=str+mImageUrls.get(i)+" ";
-        }
-        sharedPreferences.edit().putString("urls",str).apply();
-        return irl;
+        return null;
     }
 
     @NonNull
-    public List<String> getImageUrls(Context context) {
+    public List<String> getImageUrls() {
         if (mImageUrls.isEmpty()) {
             try {
+                Log.d("urls","обновилось");
                 final Calendar calendar = Calendar.getInstance();
                 final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
                 final String formattedDate = dateFormat.format(calendar.getTime());
@@ -125,13 +121,12 @@ class ImageLoader {
                     final XmlPullParser parser = Xml.newPullParser();
                     parser.setInput(stream, null);
                     String imgUrl;
-                    sharedPreferences = context.getSharedPreferences("urls",MODE_PRIVATE);
-                    String ans="";
+
                     while ((imgUrl = processEntry(parser)) != null) {
                         mImageUrls.add(imgUrl);
-                        ans=ans+imgUrl+" ";
+
                     }
-                    sharedPreferences.edit().putString("urls",ans).apply();
+
                 }
             } catch (IOException | XmlPullParserException e) {
                 e.printStackTrace();
